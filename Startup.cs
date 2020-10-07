@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CoxAutomotive.Mappers;
 using CoxAutomotive.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,14 +33,21 @@ namespace CoxAutomotive
             
             // TODO CAN BE MOVED TO CONFIGURATION
             services.AddHttpClient("cox", configure => configure.BaseAddress = new Uri("http://api.coxauto-interview.com"));
+           
             services.AddSingleton<IGetAutomotiveData, GetAutomotiveData>();
             services.AddSingleton<IGetDealer, GetDealer>();
             services.AddSingleton<IGetVehicle, GetVehicle>();
             services.AddSingleton<IGetDataSet, GetDataSetId>();
+            services.AddSingleton<IGetDataSetVehicles, GetDataSetVehicles>();
             services.AddSingleton<IDataSetMapper, DataSetMapper>();
+            services.AddSingleton<IDealerMapper, DealerMapper>();
+            services.AddSingleton<IVehicleMapper, Vehicleapper>();
+            services.AddSingleton<IDataSetVehiclesMapper, DataSetVehiclesMapper>();
+            services.AddSingleton<IInventoryMapper, InventoryMapper>();
+            services.AddSingleton<IGetInventoryCheat, GetInventoryCheat>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        // This method gets called by the runtime. Use this method  to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())

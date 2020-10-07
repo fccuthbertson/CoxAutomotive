@@ -1,7 +1,4 @@
 ﻿using CoxAutomotive.Models.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CoxAutomotive.Services
@@ -12,7 +9,12 @@ namespace CoxAutomotive.Services
     }
     public interface IGet<TIn, TOut>
     {
+        
         Task<TOut> Get(TIn @in);
+    }
+    public interface IGet<TIn, VIn, TOut>
+    {
+        Task<TOut> Get(TIn @in, VIn vIn);
     }
 
     public interface IGetDataSet : IGet<DataSetId>
@@ -20,13 +22,23 @@ namespace CoxAutomotive.Services
 
     }
 
-    public interface IGetDealer : IGet<DataSetId, Dealer>
+    public interface IGetDealer : IGet<DataSetId, DealerId, Dealer>
     {
 
     }
 
-    public interface IGetVehicle : IGet<DataSetId,Vehicle>
+    public interface IGetVehicle : IGet<DataSetId, VehicleId ,Vehicle>
     {
 
+    }
+
+    public interface IGetDataSetVehicles : IGet<DataSetId , DataSetVehicles>
+    {
+    
+    }
+
+    public interface IGetInventoryCheat : IGet<DataSetId, Inventory>
+    { 
+    
     }
 }

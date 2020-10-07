@@ -16,6 +16,7 @@ namespace CoxAutomotive.Services
         public async Task<DataSetId> Get()
         {
             try
+            
             {
                 var id = await _data.GetDataSetId();
                 if (id is null) throw new ArgumentNullException(nameof(DataSetId));
