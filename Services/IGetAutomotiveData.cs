@@ -1,15 +1,11 @@
 ﻿using CoxAutomotive.Mappers;
 using CoxAutomotive.Models.Domain;
 using CoxAutomotive.Models.Response;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 namespace CoxAutomotive.Services
@@ -102,62 +98,37 @@ namespace CoxAutomotive.Services
 
 
         public async Task<Inventory> GetDataSetDealersVehicle(DataSetId dataSetId)
-        {
-            var cars = new ConcurrentBag<Vehicle>();
+        {            
             var dataSetsVechicles = await GetDataSetVehicles(dataSetId);
-           
-              Parallel.For(0, dataSetsVechicles.VehicleIds.Length, async i =>
-                {
-                    cars.Add(await GetVehicle(dataSetId, new VehicleId { Value = dataSetsVechicles.VehicleIds[i] }));
-                });
-
+            var carTasks = dataSetsVechicles.VehicleIds.Select(id => GetVehicle(dataSetId, new VehicleId(id)));
+            var vehicles = await Task.WhenAll(carTasks);
+            
             // get the Dealer Name and ID
-      
-            var distinticDealrs = GetDealerListOfDataSetID(cars.ToList());
-            var dealers = new ConcurrentBag<Dealer>();
-            Parallel.For(0, distinticDealrs.Count - 1, async index =>
-            {
-                dealers.Add(await GetDealer(dataSetId, distinticDealrs[index]));
-            }
-            );
-
-            return GetInventory(cars.ToList(), dealers.ToList());
-          
+            var dealerIds = vehicles.Select(v => v.DealerId).Distinct();
+            var dealerTasks = dealerIds.Select(id => GetDealer(dataSetId, new DealerId(id)));
+            return GetInventory(vehicles.ToList(), (await Task.WhenAll(dealerTasks)).ToList());
         }
 
 
         public async Task<Inventory> GetInventoryFromCheat(DataSetId dataSetId)
         {
             var url = ApiDataSetIDCheat(dataSetId);
-            return await Get<Inventory, InventoryResponce, IInventoryMapper>(url, _inventoryMapper);
+            return await Get<Inventory, InventoryResponse, IInventoryMapper>(url, _inventoryMapper);
         }
 
-        private List<DealerId> GetDealerListOfDataSetID(List<Vehicle> vehicles)
-        {
-            if (vehicles is null) return null;
-
-            var dealerIdArr = vehicles.Select(v => v.DealerId).ToArray().Distinct();
-            var dealerIds = dealerIdArr.Select(v => new DealerId { Value = v }).ToList();
-            return dealerIds;
-        }
-
-        private Inventory GetInventory(List<Vehicle> vehicles, List<Dealer> dearls)
+        private Inventory GetInventory(List<Vehicle> vehicles, List<Dealer> dealers)
         {
 
             if (vehicles is null) throw new ArgumentNullException(nameof(List<Vehicle>));
-            if (dearls is null) throw new ArgumentNullException(nameof(List<Dealer>));
+            if (dealers is null) throw new ArgumentNullException(nameof(List<Dealer>));
+
+            var dealerList = dealers.Select(dealer => new Dealer {
+                DealerId = dealer.DealerId,
+                Name = dealer.Name,
+                Vehicles = vehicles.Where(v => v.DealerId.Equals(dealer.DealerId))
+            });
 
             var inventory = new Inventory();
-            var dealerList = new List<Dealer>();
-            for (int i = 0; i < dearls.Count; i++)
-            {
-               dealerList.Add(new Dealer
-                {
-                    DealerId = dearls[i].DealerId,
-                    Name = dearls[i].Name,
-                    Vehicles = vehicles.Where(v => v.DealerId == dearls[i].DealerId).ToList()
-                });
-            }
             inventory.Dealers = dealerList;
             return inventory;
         }

@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace CoxAutomotive.Models.Domain
 {
     public class Inventory
     {
-        public List<Dealer> Dealers { get; set; }
+        public IEnumerable<Dealer> Dealers { get; set; }
     }
 }

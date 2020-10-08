@@ -1,11 +1,6 @@
 ﻿using CoxAutomotive.Models.Domain;
 using CoxAutomotive.Models.Response;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Linq;
 
 namespace CoxAutomotive.Mappers
 {
@@ -19,10 +14,7 @@ namespace CoxAutomotive.Mappers
     {
         public DataSetId Map(DataSetResponse @in)
         {
-            var model = new DataSetId
-            {
-                Value = @in.DataSetId
-            };
+            var model = new DataSetId(@in.DataSetId);
             return model;
         }
     }
@@ -73,7 +65,7 @@ namespace CoxAutomotive.Mappers
         }
     }
 
-    public interface IInventoryMapper : IMap<InventoryResponce, Inventory> { }
+    public interface IInventoryMapper : IMap<InventoryResponse, Inventory> { }
     public class InventoryMapper : IInventoryMapper
     {
         private readonly IVehicleMapper _vehicleMapper;
@@ -82,35 +74,18 @@ namespace CoxAutomotive.Mappers
         {
             _vehicleMapper = vehicleMapper;
         }
-        public Inventory Map(InventoryResponce @in)
+        public Inventory Map(InventoryResponse @in)
         {
             var model = new Inventory();
             if (@in is null || @in.DealerVehicles is null) return null;
-            for (int i = 0; i < @in.DealerVehicles.Count; i++)
-            {
-                model.Dealers.Add(
-                                     new Dealer
-                                     {
-                                         DealerId = @in.DealerVehicles[i].DealerId,
-                                         Name = @in.DealerVehicles[i].Name,
-                                         Vehicles = GetVehicles(@in.DealerVehicles[i].Vehicles)
-                                     }
-                                  );
-            }
+            var dealers = @in.DealerVehicles.Select(dv => new Dealer {
+                DealerId = dv.DealerId,
+                Name = dv.Name,
+                Vehicles = dv.Vehicles.Select(_vehicleMapper.Map)
+            });
 
             return model;
         }
-        public List<Vehicle> GetVehicles(List<VehicleResponse> vehicleResponses)
-        {
-            var vehicles = new List<Vehicle>();
-                for (int j = 0; j < vehicleResponses.Count; j++)
-                {
-                    vehicles.Add(_vehicleMapper.Map(vehicleResponses[j]));
-                }
-            return vehicles;
-        }
-
-        
     }
 }
 
