@@ -106,12 +106,11 @@ namespace CoxAutomotive.Services
             var cars = new ConcurrentBag<Vehicle>();
             var dataSetsVechicles = await GetDataSetVehicles(dataSetId);
            
-             var vehicleExecutionResilt =    Parallel.For(0, dataSetsVechicles.VehicleIds.Length, async i =>
+              Parallel.For(0, dataSetsVechicles.VehicleIds.Length, async i =>
                 {
                     cars.Add(await GetVehicle(dataSetId, new VehicleId { Value = dataSetsVechicles.VehicleIds[i] }));
                 });
 
-            _ = vehicleExecutionResilt.IsCompleted;
             // get the Dealer Name and ID
       
             var distinticDealrs = GetDealerListOfDataSetID(cars.ToList());
