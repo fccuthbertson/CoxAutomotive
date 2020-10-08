@@ -45,6 +45,7 @@ namespace CoxAutomotive
             services.AddSingleton<IDataSetVehiclesMapper, DataSetVehiclesMapper>();
             services.AddSingleton<IInventoryMapper, InventoryMapper>();
             services.AddSingleton<IGetInventoryCheat, GetInventoryCheat>();
+            services.AddSingleton<IGetInvenory, GetInventory>();
         }
 
         // This method gets called by the runtime. Use this method  to configure the HTTP request pipeline.

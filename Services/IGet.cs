@@ -41,4 +41,9 @@ namespace CoxAutomotive.Services
     { 
     
     }
+
+    public interface IGetInvenory : IGet<DataSetId, Inventory>
+    { 
+    
+    }
 }

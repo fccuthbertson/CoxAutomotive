@@ -14,12 +14,14 @@ namespace CoxAutomotive.Controllers
         private readonly IGetDataSetVehicles _getDataSetVehicles;
         private readonly IGetVehicle _getVehicle;
         private readonly IGetInventoryCheat _getInventoryCheat;
+        private readonly IGetInvenory _getInvenory;
 
         public HomeController(IGetDataSet getDataSet,
                                IGetDealer getDealer,
                                IGetDataSetVehicles getDataSetVehicles,
                                IGetVehicle getVehicle,
-                               IGetInventoryCheat getInventoryCheat
+                               IGetInventoryCheat getInventoryCheat,
+                               IGetInvenory getInvenory
                                )
         {
             _getDataSet = getDataSet;
@@ -27,6 +29,7 @@ namespace CoxAutomotive.Controllers
             _getDataSetVehicles = getDataSetVehicles;
             _getVehicle = getVehicle;
             _getInventoryCheat = getInventoryCheat;
+            _getInvenory = getInvenory;
         }
 
         public async Task<IActionResult> Index()
@@ -42,8 +45,11 @@ namespace CoxAutomotive.Controllers
             // get Vehicle data
           //  var vehicleDetails = await _getVehicle.Get(new DataSetId { Value = "V4UeI0Jp2Ag" }, new VehicleId { Value = 106850931 });
 
-            //get inventory 
-            var inventory = await _getInventoryCheat.Get(id);
+            //get inventory from cheat api
+            var inventoryCheat = await _getInventoryCheat.Get(id);
+
+            //get the Inverty from the 
+            var inventory = await _getInvenory.Get(id);
             return View();
         }
 
