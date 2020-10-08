@@ -4,6 +4,7 @@ using CoxAutomotive.Models.Response;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -102,21 +103,27 @@ namespace CoxAutomotive.Services
 
         public async Task<Inventory> GetDataSetDealersVehicle(DataSetId dataSetId)
         {
-            var cars = new List<Vehicle>();
+            var cars = new ConcurrentBag<Vehicle>();
             var dataSetsVechicles = await GetDataSetVehicles(dataSetId);
-            for (int i = 0; i < dataSetsVechicles.VehicleIds.Length; i++)
-            {
-                cars.Add(await GetVehicle(dataSetId, new VehicleId { Value = dataSetsVechicles.VehicleIds[i] }));
-            }
-            // get the Dealer Name and ID
-            var distinticDealrs = GetDealerListOfDataSetID(cars);
-            var dealers = new List<Dealer>();
-            for (int i = 0; i < distinticDealrs.Count; i++)
-            {
-                dealers.Add(await GetDealer(dataSetId, distinticDealrs[i]));
-            }
+           
+             var vehicleExecutionResilt =    Parallel.For(0, dataSetsVechicles.VehicleIds.Length, async i =>
+                {
+                    cars.Add(await GetVehicle(dataSetId, new VehicleId { Value = dataSetsVechicles.VehicleIds[i] }));
+                });
 
-            return GetInventory(cars, dealers);
+            _ = vehicleExecutionResilt.IsCompleted;
+            // get the Dealer Name and ID
+      
+            var distinticDealrs = GetDealerListOfDataSetID(cars.ToList());
+            var dealers = new ConcurrentBag<Dealer>();
+            Parallel.For(0, distinticDealrs.Count - 1, async index =>
+            {
+                dealers.Add(await GetDealer(dataSetId, distinticDealrs[index]));
+            }
+            );
+
+            return GetInventory(cars.ToList(), dealers.ToList());
+          
         }
 
 
@@ -142,15 +149,17 @@ namespace CoxAutomotive.Services
             if (dearls is null) throw new ArgumentNullException(nameof(List<Dealer>));
 
             var inventory = new Inventory();
+            var dealerList = new List<Dealer>();
             for (int i = 0; i < dearls.Count; i++)
             {
-                inventory.Dealers.Add(new Dealer
+               dealerList.Add(new Dealer
                 {
                     DealerId = dearls[i].DealerId,
                     Name = dearls[i].Name,
                     Vehicles = vehicles.Where(v => v.DealerId == dearls[i].DealerId).ToList()
                 });
             }
+            inventory.Dealers = dealerList;
             return inventory;
         }
     }

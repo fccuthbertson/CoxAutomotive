@@ -53,8 +53,8 @@ namespace CoxAutomotive.Mappers
                 Model = @in.Model,
                 Make = @in.Make,
                 VehicleId = @in.VehicleId,
-                Year = @in.Year
-
+                Year = @in.Year,
+                DealerId = @in.DealerId
             };
             return model;
         }
