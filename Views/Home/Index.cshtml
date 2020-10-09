@@ -11,3 +11,27 @@
     <h3>Time Elapsed</h3>
     <div>@Model.Elapsed</div>
 </div>
+<div>
+    <h3>Inventory</h3>
+    @{
+        foreach (var dealer in Model.Inventory.Dealers)
+        {
+            <h4>@dealer.Name</h4>
+            <table style="width:50%">
+                <tr>
+                    <th>Make</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                </tr>
+                @foreach (var vehicle in dealer.Vehicles)
+                {
+                    <tr>
+                        <td>@vehicle.Make</td>
+                        <td>@vehicle.Model</td>
+                        <td>@vehicle.Year</td>
+                    </tr>
+                }
+            </table>
+        }
+    }
+</div>
