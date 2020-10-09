@@ -1,4 +1,5 @@
 ﻿using CoxAutomotive.Models.Domain;
+using CoxAutomotive.Models.Http.Response;
 using CoxAutomotive.Models.Response;
 using System.Linq;
 
@@ -9,8 +10,8 @@ namespace CoxAutomotive.Mappers
         TOut Map(TIn @in);
     }
 
-    public interface IDataSetMapper : IMap<DataSetResponse, DataSetId> { }
-    public class DataSetMapper : IDataSetMapper
+    public interface IDataSetIdMapper : IMap<DataSetResponse, DataSetId> { }
+    public class DataSetMapper : IDataSetIdMapper
     {
         public DataSetId Map(DataSetResponse @in)
         {
@@ -52,14 +53,14 @@ namespace CoxAutomotive.Mappers
         }
     }
 
-    public interface IDataSetVehiclesMapper : IMap<DataSetVehiclesResponse, DataSetVehicles> { }
+    public interface IDataSetVehiclesMapper : IMap<DataSetVehiclesResponse, VehicleIds> { }
     public class DataSetVehiclesMapper : IDataSetVehiclesMapper
     {
-        public DataSetVehicles Map(DataSetVehiclesResponse @in)
+        public VehicleIds Map(DataSetVehiclesResponse @in)
         {
-            var model = new DataSetVehicles
+            var model = new VehicleIds
             {
-                VehicleIds = @in.VehicleIds
+                Value = @in.VehicleIds
             };
             return model;
         }

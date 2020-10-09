@@ -17,7 +17,7 @@ namespace CoxAutomotive.Services
         Task<TOut> Get(TIn @in, VIn vIn);
     }
 
-    public interface IGetDataSet : IGet<DataSetId>
+    public interface IGetDataSetId : IGet<DataSetId>
     {
 
     }
@@ -32,17 +32,12 @@ namespace CoxAutomotive.Services
 
     }
 
-    public interface IGetDataSetVehicles : IGet<DataSetId , DataSetVehicles>
+    public interface IGetVehicleIds : IGet<DataSetId , VehicleIds>
     {
     
     }
 
-    public interface IGetInventoryCheat : IGet<DataSetId, Inventory>
-    { 
-    
-    }
-
-    public interface IGetInvenory : IGet<DataSetId, Inventory>
+    public interface IGetInventory : IGet<DataSetId, Inventory>
     { 
     
     }

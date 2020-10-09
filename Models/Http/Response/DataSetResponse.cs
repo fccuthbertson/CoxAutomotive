@@ -1,4 +1,4 @@
-﻿namespace CoxAutomotive.Models.Response
+﻿namespace CoxAutomotive.Models.Http.Response
 {
     public class DataSetResponse
     {

@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace CoxAutomotive.Models.Response
+namespace CoxAutomotive.Models.Http.Response
 {
     public class InventoryResponse
     {
@@ -15,5 +14,5 @@ namespace CoxAutomotive.Models.Response
         public IEnumerable<VehicleResponse> Vehicles { get; set; }
     }
 
-   
+
 }

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace CoxAutomotive.Services
 {
-    public class GetInventory : IGetInvenory
+    public class GetInventory : IGetInventory
     {
         private readonly IGetAutomotiveData _data;
 
@@ -17,7 +17,7 @@ namespace CoxAutomotive.Services
         {
             try
             {
-                var inventory = await _data.GetDataSetDealersVehicle(@in);
+                var inventory = await _data.GetInventory(@in);
                 if (inventory is null) return null;
                 return inventory;
             }

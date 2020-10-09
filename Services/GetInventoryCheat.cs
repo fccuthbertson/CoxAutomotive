@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace CoxAutomotive.Services
 {
-    public class GetInventoryCheat : IGetInventoryCheat
+    public class GetInventoryCheat : IGetInventory
     {
         private readonly IGetAutomotiveData _data;
 
@@ -16,10 +16,10 @@ namespace CoxAutomotive.Services
         {
             try 
             {
-                var inventory = await _data.GetInventoryFromCheat(@in);
+                var inventory = await _data.GetCheatInventory(@in as DataSetIdCheat);
                 if (inventory is null) throw new ArgumentNullException(nameof(DataSetId));
                 return inventory;
-                        }
+            }
             catch
             {
                 // Log and or throw

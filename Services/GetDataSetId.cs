@@ -4,7 +4,7 @@ using CoxAutomotive.Models.Domain;
 
 namespace CoxAutomotive.Services
 {
-    public class GetDataSetId : IGetDataSet
+    public class GetDataSetId : IGetDataSetId
     {
         private readonly IGetAutomotiveData _data;
 

@@ -1,8 +1,8 @@
 ﻿using CoxAutomotive.Mappers;
 using CoxAutomotive.Models.Domain;
+using CoxAutomotive.Models.Http.Response;
 using CoxAutomotive.Models.Response;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -15,41 +15,31 @@ namespace CoxAutomotive.Services
         Task<DataSetId> GetDataSetId();
         Task<Dealer> GetDealer(DataSetId dataSetId, DealerId dealerId);
         Task<Vehicle> GetVehicle(DataSetId dataSetId, VehicleId vehicleId);
-        Task<DataSetVehicles> GetDataSetVehicles(DataSetId dataSetId);
-        Task<Inventory> GetDataSetDealersVehicle(DataSetId dataSetId);
-        Task<Inventory> GetInventoryFromCheat(DataSetId dataSetId);
+        Task<VehicleIds> GetVehicleIds(DataSetId dataSetId);
+        Task<Inventory> GetInventory(DataSetId dataSetId);
+        Task<Inventory> GetCheatInventory(DataSetIdCheat dataSetId);
     }
 
     public class GetAutomotiveData : IGetAutomotiveData
     {
-        private readonly IDataSetMapper _dataSetMapper;
+        private readonly IDataSetIdMapper _dataSetMapper;
         private readonly IDealerMapper _dealerMapper;
         private readonly IDataSetVehiclesMapper _dataSetVehiclesMapper;
         private readonly IVehicleMapper _vehicleMapper;
         private readonly IInventoryMapper _inventoryMapper;
+        private readonly IPathService _pathService;
 
         private readonly HttpClient _client;
         private const string Cox = "cox";
-        private const string Api = "api";
-        private string ApiDataSetId = $"{Api}/datasetId";
-        private Func<DataSetId, DealerId, string>
-            ApiDataSetIdDealersDealerId = (DataSetId dataSetId, DealerId dealerId) => $"{Api}/{dataSetId.Value}/dealers/{dealerId.Value}";
-
-        private Func<DataSetId, string>
-            ApiDataSetIDVehicles = (DataSetId dataSetId) => $"{Api}/{dataSetId.Value}/vehicles";
-
-        private Func<DataSetId, VehicleId, string>
-             ApiDataSetIdVehicleID = (DataSetId dataSetId, VehicleId vehicleId) => $"{Api}/{dataSetId.Value}/vehicles/{vehicleId.Value}";
-
-        private Func<DataSetId, string>
-            ApiDataSetIDCheat = (DataSetId dataSetId) => $"{Api}/{dataSetId.Value}/cheat";
 
         public GetAutomotiveData(IHttpClientFactory httpClientFactory,
-                                 IDataSetMapper dataSetMapper,
+                                 IDataSetIdMapper dataSetMapper,
                                  IDataSetVehiclesMapper dataSetVehiclesMapper,
                                  IDealerMapper dealerMapper,
                                  IVehicleMapper vehicleMapper,
-                                 IInventoryMapper inventoryMapper)
+                                 IInventoryMapper inventoryMapper,
+                                 IPathService pathService
+                                 )
         {
             _client = httpClientFactory.CreateClient(Cox);
             _dataSetMapper = dataSetMapper;
@@ -57,12 +47,14 @@ namespace CoxAutomotive.Services
             _dealerMapper = dealerMapper;
             _vehicleMapper = vehicleMapper;
             _inventoryMapper = inventoryMapper;
+            _pathService = pathService;
         }
 
-        private async Task<TOut> Get<TOut, TResponse, TMapper>(string url, TMapper mapper)
+        private async Task<TOut> Get<TOut, TResponse, TMapper, TPath>(TMapper mapper, params object[] args)
             where TMapper : IMap<TResponse, TOut>
         {
-            var response = await _client.GetAsync(url);
+            var path = _pathService.GetPathFor<TPath>(args);
+            var response = await _client.GetAsync(path);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
@@ -74,63 +66,49 @@ namespace CoxAutomotive.Services
 
         public async Task<DataSetId> GetDataSetId()
         {
-            return await Get<DataSetId, DataSetResponse, IDataSetMapper>(ApiDataSetId, _dataSetMapper);
+            return await Get<DataSetId, DataSetResponse, IDataSetIdMapper, DataSetId>(_dataSetMapper);
         }
 
         public async Task<Dealer> GetDealer(DataSetId dataSetId, DealerId dealerId)
         {
-            var url = ApiDataSetIdDealersDealerId(dataSetId, dealerId);
-            return await Get<Dealer, DealerResponse, IDealerMapper>(url, _dealerMapper);
+            return await Get<Dealer, DealerResponse, IDealerMapper, DealerId>(_dealerMapper, dataSetId.Value, dealerId.Value);
         }
 
         public async Task<Vehicle> GetVehicle(DataSetId dataSetId, VehicleId vehicleId)
         {
-            var url = ApiDataSetIdVehicleID(dataSetId, vehicleId);
-            return await Get<Vehicle, VehicleResponse, IVehicleMapper>(url, _vehicleMapper);
+            return await Get<Vehicle, VehicleResponse, IVehicleMapper, VehicleId>(_vehicleMapper, dataSetId.Value, vehicleId.Value);
         }
 
 
-        public async Task<DataSetVehicles> GetDataSetVehicles(DataSetId dataSetId)
+        public async Task<VehicleIds> GetVehicleIds(DataSetId dataSetId)
         {
-            var url = ApiDataSetIDVehicles(dataSetId);
-            return await Get<DataSetVehicles, DataSetVehiclesResponse, IDataSetVehiclesMapper>(url, _dataSetVehiclesMapper);
+            return await Get<VehicleIds, DataSetVehiclesResponse, IDataSetVehiclesMapper, Vehicle>(_dataSetVehiclesMapper, dataSetId.Value);
         }
 
 
-        public async Task<Inventory> GetDataSetDealersVehicle(DataSetId dataSetId)
+        public async Task<Inventory> GetInventory(DataSetId dataSetId)
         {            
-            var dataSetsVechicles = await GetDataSetVehicles(dataSetId);
-            var carTasks = dataSetsVechicles.VehicleIds.Select(id => GetVehicle(dataSetId, new VehicleId(id)));
+            var dataSetsVechicles = await GetVehicleIds(dataSetId);
+            var carTasks = dataSetsVechicles.Value.Select(id => GetVehicle(dataSetId, new VehicleId(id)));
             var vehicles = await Task.WhenAll(carTasks);
-            
-            // get the Dealer Name and ID
+
             var dealerIds = vehicles.Select(v => v.DealerId).Distinct();
-            var dealerTasks = dealerIds.Select(id => GetDealer(dataSetId, new DealerId(id)));
-            return GetInventory(vehicles.ToList(), (await Task.WhenAll(dealerTasks)).ToList());
-        }
+            var dealers =  await Task.WhenAll(dealerIds.Select(id => GetDealer(dataSetId, new DealerId(id))));
 
-
-        public async Task<Inventory> GetInventoryFromCheat(DataSetId dataSetId)
-        {
-            var url = ApiDataSetIDCheat(dataSetId);
-            return await Get<Inventory, InventoryResponse, IInventoryMapper>(url, _inventoryMapper);
-        }
-
-        private Inventory GetInventory(List<Vehicle> vehicles, List<Dealer> dealers)
-        {
-
-            if (vehicles is null) throw new ArgumentNullException(nameof(List<Vehicle>));
-            if (dealers is null) throw new ArgumentNullException(nameof(List<Dealer>));
-
-            var dealerList = dealers.Select(dealer => new Dealer {
+            var dealerList = dealers.Select(dealer => new Dealer
+            {
                 DealerId = dealer.DealerId,
                 Name = dealer.Name,
                 Vehicles = vehicles.Where(v => v.DealerId.Equals(dealer.DealerId))
             });
 
-            var inventory = new Inventory();
-            inventory.Dealers = dealerList;
-            return inventory;
+            return new Inventory { Dealers = dealerList };
+        }
+
+
+        public async Task<Inventory> GetCheatInventory(DataSetIdCheat dataSetId)
+        {
+            return await Get<Inventory, InventoryResponse, IInventoryMapper, DataSetIdCheat>(_inventoryMapper, dataSetId.Value);
         }
     }
 }

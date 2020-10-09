@@ -19,6 +19,13 @@ namespace CoxAutomotive.Models.Domain
         }
     }
 
+    public class DataSetIdCheat : DataSetId
+    {
+        public DataSetIdCheat(string value) : base(value)
+        {
+        }
+    }
+
     public class DealerId : Id<int>
     {
         public DealerId(int value) : base(value)

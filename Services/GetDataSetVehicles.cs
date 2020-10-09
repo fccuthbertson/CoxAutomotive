@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CoxAutomotive.Services
 {
-    public class GetDataSetVehicles : IGetDataSetVehicles
+    public class GetDataSetVehicles : IGetVehicleIds
     {
         private readonly IGetAutomotiveData _data;
 
@@ -15,11 +15,11 @@ namespace CoxAutomotive.Services
             _data = getAutomotiveData;
         }
 
-        public async Task<DataSetVehicles> Get(DataSetId dataSetId)
+        public async Task<VehicleIds> Get(DataSetId dataSetId)
         {
             try
             {
-                var vehicles = await _data.GetDataSetVehicles(dataSetId);
+                var vehicles = await _data.GetVehicleIds(dataSetId);
                 if (vehicles is null) throw new ArgumentNullException(nameof(DataSetId));
                 return vehicles;
             }
