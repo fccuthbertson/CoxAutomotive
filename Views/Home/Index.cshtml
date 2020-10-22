@@ -1,8 +1,35 @@
-﻿@{
+﻿@model CoxAutomotive.Models.ViewModel.Home
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<div>Inventory Based on the the Dealers</div>
+<div>
+    <h5>Inventory by Dealer</h5>
+    <h5> Time Elapsed : @Model.TimeSpanToGetRecords </h5>
+
+    @{ foreach (var dealer in Model.Inventory.Dealers)
+
+        {            <h6> @dealer.Name</h6> 
+    <table>
+        <tr>
+          <td>Mark</td>
+          <td>Model</td>
+          <td>Year</td>
+        </tr>
+        @foreach (var vehicle in dealer.Vehicles)
+        {<tr>
+            <td>@vehicle.Make</td>
+            <td>@vehicle.Model</td>
+            <td>@vehicle.Year</td>
+        </tr>
+        }
+    </table>
+            }
+        }
 </div>

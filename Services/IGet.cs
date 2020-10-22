@@ -46,4 +46,8 @@ namespace CoxAutomotive.Services
     { 
     
     }
+
+    public interface IGetInventoryByMake : IGet<InventoryByVehicleMake>
+    {
+    }
 }

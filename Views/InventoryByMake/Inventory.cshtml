@@ -1,0 +1,31 @@
+﻿@model CoxAutomotive.Models.ViewModel.InventoryByVMake
+
+@{
+    ViewData["Title"] = "Inventory By Make";
+}
+<h1>@ViewData["Title"]</h1>
+
+<div> Inventory based on the Car Make</div>
+<div>
+    <div><h6>Time Elapsed :@Model.TimeSpan </h6></div>
+    <br />
+    <div><h4> Inventory by Vehicle Make and Dealers </h4></div>
+    @{ foreach (var item in Model.Makes.Makes)
+        {
+            <div><h4>@item.Make</h4></div>
+            foreach (var mokeDetail in item.MakeDetails)
+            {
+                <ul>
+                    <li>
+                        <strong>@mokeDetail.Model</strong>
+                        <ul>
+                            <li>Count: <strong>@mokeDetail.Count</strong></li>
+                            <li>Dealer: <strong>@mokeDetail.DealerName</strong></li>
+                        </ul>
+                    </li>
+                </ul>
+            }
+
+        }
+    }
+</div>

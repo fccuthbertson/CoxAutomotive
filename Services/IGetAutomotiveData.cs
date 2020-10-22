@@ -1,6 +1,7 @@
 ﻿using CoxAutomotive.Mappers;
 using CoxAutomotive.Models.Domain;
 using CoxAutomotive.Models.Response;
+using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -89,31 +90,22 @@ namespace CoxAutomotive.Services
             return await Get<Vehicle, VehicleResponse, IVehicleMapper>(url, _vehicleMapper);
         }
 
-
         public async Task<DataSetVehicles> GetDataSetVehicles(DataSetId dataSetId)
         {
             var url = ApiDataSetIDVehicles(dataSetId);
             return await Get<DataSetVehicles, DataSetVehiclesResponse, IDataSetVehiclesMapper>(url, _dataSetVehiclesMapper);
         }
 
-
         public async Task<Inventory> GetDataSetDealersVehicle(DataSetId dataSetId)
-        {            
+        {
             var dataSetsVechicles = await GetDataSetVehicles(dataSetId);
             var carTasks = dataSetsVechicles.VehicleIds.Select(id => GetVehicle(dataSetId, new VehicleId(id)));
             var vehicles = await Task.WhenAll(carTasks);
-            
+
             // get the Dealer Name and ID
             var dealerIds = vehicles.Select(v => v.DealerId).Distinct();
             var dealerTasks = dealerIds.Select(id => GetDealer(dataSetId, new DealerId(id)));
             return GetInventory(vehicles.ToList(), (await Task.WhenAll(dealerTasks)).ToList());
-        }
-
-
-        public async Task<Inventory> GetInventoryFromCheat(DataSetId dataSetId)
-        {
-            var url = ApiDataSetIDCheat(dataSetId);
-            return await Get<Inventory, InventoryResponse, IInventoryMapper>(url, _inventoryMapper);
         }
 
         private Inventory GetInventory(List<Vehicle> vehicles, List<Dealer> dealers)
@@ -122,7 +114,8 @@ namespace CoxAutomotive.Services
             if (vehicles is null) throw new ArgumentNullException(nameof(List<Vehicle>));
             if (dealers is null) throw new ArgumentNullException(nameof(List<Dealer>));
 
-            var dealerList = dealers.Select(dealer => new Dealer {
+            var dealerList = dealers.Select(dealer => new Dealer
+            {
                 DealerId = dealer.DealerId,
                 Name = dealer.Name,
                 Vehicles = vehicles.Where(v => v.DealerId.Equals(dealer.DealerId))
@@ -131,6 +124,12 @@ namespace CoxAutomotive.Services
             var inventory = new Inventory();
             inventory.Dealers = dealerList;
             return inventory;
+        }
+
+        public async Task<Inventory> GetInventoryFromCheat(DataSetId dataSetId)
+        {
+            var url = ApiDataSetIDCheat(dataSetId);
+            return await Get<Inventory, InventoryResponse, IInventoryMapper>(url, _inventoryMapper);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using CoxAutomotive.Extentions;
 using CoxAutomotive.Mappers;
 using CoxAutomotive.Services;
 using Microsoft.AspNetCore.Builder;
@@ -33,19 +34,8 @@ namespace CoxAutomotive
             
             // TODO CAN BE MOVED TO CONFIGURATION
             services.AddHttpClient("cox", configure => configure.BaseAddress = new Uri("http://api.coxauto-interview.com"));
-           
-            services.AddSingleton<IGetAutomotiveData, GetAutomotiveData>();
-            services.AddSingleton<IGetDealer, GetDealer>();
-            services.AddSingleton<IGetVehicle, GetVehicle>();
-            services.AddSingleton<IGetDataSet, GetDataSetId>();
-            services.AddSingleton<IGetDataSetVehicles, GetDataSetVehicles>();
-            services.AddSingleton<IDataSetMapper, DataSetMapper>();
-            services.AddSingleton<IDealerMapper, DealerMapper>();
-            services.AddSingleton<IVehicleMapper, Vehicleapper>();
-            services.AddSingleton<IDataSetVehiclesMapper, DataSetVehiclesMapper>();
-            services.AddSingleton<IInventoryMapper, InventoryMapper>();
-            services.AddSingleton<IGetInventoryCheat, GetInventoryCheat>();
-            services.AddSingleton<IGetInvenory, GetInventory>();
+
+            services.AddAppServices();
         }
 
         // This method gets called by the runtime. Use this method  to configure the HTTP request pipeline.
